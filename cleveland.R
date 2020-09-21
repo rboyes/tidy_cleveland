@@ -36,12 +36,8 @@ wf_final <- finalize_workflow(wf_cleveland, best_params) %>% fit(data = df_train
 
 df_preds <- wf_final %>% predict(df_testing, type = "prob") %>% bind_cols(df_testing)
 df_preds <- wf_final %>% predict(df_testing) %>% bind_cols(df_preds)
-df_preds %>% conf_mat(truth = target, estimate = .pred_class)
-df_preds %>% accuracy(truth = target, estimate = .pred_class)
+df_metrics <- df_preds %>% conf_mat(truth = target, estimate = .pred_class) %>% summary()
 
-df_preds %>% precision(truth = target, estimate = .pred_class)
-df_preds %>% recall(truth = target, estimate = .pred_class)
-df_preds %>% f_meas(truth = target, estimate = .pred_class)
 df_preds %>% roc_auc(target,.pred_0)
 
 df_preds %>% roc_curve(target, .pred_0) %>% autoplot()
@@ -51,3 +47,5 @@ mat_importance <- importance(rf_final$fit)
 df_importance <- data.frame(column = rownames(mat_importance), mat_importance)
 rownames(df_importance) <- NULL
 df_importance %>% arrange(desc(MeanDecreaseGini))
+
+saveRDS(wf_final, "wf_final.rds")
