@@ -5,13 +5,24 @@ library(randomForest)
 df_cleveland <- read.csv(url("https://archive.ics.uci.edu/ml/machine-learning-databases/heart-disease/processed.cleveland.data"), 
                          header = FALSE, 
                          na.strings = c("?")) %>% as_tibble()
-colnames(df_cleveland) <- c("age", "sex", "cp", "trestbps", 
-                            "chol", "fbs", "restecg", "thalach", 
-                            "exang", "oldpeak", "slope", 
-                            "ca", "thal", "target")
 
-df_cleveland <- df_cleveland %>% mutate(target = as.factor(ifelse(target > 0, 1, 0)))
-df_cleveland %>% group_by(target) %>% count()
+colnames(df_cleveland) <- c("age", 
+                            "sex", 
+                            "cp", 
+                            "trestbps", 
+                            "chol", 
+                            "fbs", 
+                            "restecg", 
+                            "thalach", 
+                            "exang", 
+                            "oldpeak", 
+                            "slope", 
+                            "ca", 
+                            "thal", 
+                            "target")
+
+df_cleveland <- df_cleveland %>% mutate(target = as.factor(ifelse(target > 0, 1, 0))) # Does any heart disease exist?
+df_targetdist <- df_cleveland %>% group_by(target) %>% count()
 
 set.seed(5)
 split_cleveland <- initial_split(df_cleveland, prop = 0.75, strata = target)
