@@ -46,6 +46,7 @@ df_preds %>% roc_auc(target,.pred_0)
 
 df_preds %>% roc_curve(target, .pred_0) %>% autoplot()
 
+rf_final <- pull_workflow_fit(wf_final)
 mat_importance <- importance(rf_final$fit)
 df_importance <- data.frame(column = rownames(mat_importance), mat_importance)
 rownames(df_importance) <- NULL
