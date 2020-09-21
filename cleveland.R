@@ -21,6 +21,7 @@ colnames(df_cleveland) <- c("age",
                             "thal", 
                             "target")
 
+df_cleveland <- df_cleveland %>% mutate(target = as.factor(ifelse(target > 0, "heart_disease", "no_heart_disease")))
 df_targetdist <- df_cleveland %>% group_by(target) %>% count()
 
 set.seed(5)
@@ -29,16 +30,9 @@ df_training <- split_cleveland %>% training()
 df_testing <- split_cleveland %>% testing()
 
 rcp_cleveland <- recipe(target ~ ., data = df_training) %>% 
-  step_medianimpute(ca, thal) %>% 
-  step_mutate(sex = factor(sex),
-              cp = factor(sex),
-              fbs = factor(fbs),
-              restecg = factor(restecg),
-              exang = factor(exang),
-              slope = factor(slope),
-              ca = factor(ca),
-              thal = factor(thal),
-              target = factor(target))
+  step_medianimpute(ca, thal)
+
+prepped_rcp <- rcp_cleveland %>% prep(df_training)
   
 rf_cleveland <- rand_forest(trees = tune(), mtry = tune(), mode = "classification") %>% set_engine("randomForest")
 
@@ -58,9 +52,9 @@ df_preds <- wf_final %>% predict(df_testing, type = "prob") %>% bind_cols(df_tes
 df_preds <- wf_final %>% predict(df_testing) %>% bind_cols(df_preds)
 df_metrics <- df_preds %>% conf_mat(truth = target, estimate = .pred_class) %>% summary()
 
-df_preds %>% roc_auc(target,.pred_0)
+df_preds %>% roc_auc(target, .pred_heart_disease)
 
-df_preds %>% roc_curve(target, .pred_0) %>% autoplot()
+df_preds %>% roc_curve(target, .pred_heart_disease) %>% autoplot()
 
 rf_final <- pull_workflow_fit(wf_final)
 mat_importance <- importance(rf_final$fit)
