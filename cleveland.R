@@ -21,7 +21,6 @@ colnames(df_cleveland) <- c("age",
                             "thal", 
                             "target")
 
-df_cleveland <- df_cleveland %>% mutate(target = as.factor(ifelse(target > 0, 1, 0))) # Does any heart disease exist?
 df_targetdist <- df_cleveland %>% group_by(target) %>% count()
 
 set.seed(5)
@@ -29,8 +28,18 @@ split_cleveland <- initial_split(df_cleveland, prop = 0.75, strata = target)
 df_training <- split_cleveland %>% training()
 df_testing <- split_cleveland %>% testing()
 
-rcp_cleveland <- recipe(target ~ ., data = df_training) %>% step_medianimpute(ca, thal) 
-
+rcp_cleveland <- recipe(target ~ ., data = df_training) %>% 
+  step_medianimpute(ca, thal) %>% 
+  step_mutate(sex = factor(sex),
+              cp = factor(sex),
+              fbs = factor(fbs),
+              restecg = factor(restecg),
+              exang = factor(exang),
+              slope = factor(slope),
+              ca = factor(ca),
+              thal = factor(thal),
+              target = factor(target))
+  
 rf_cleveland <- rand_forest(trees = tune(), mtry = tune(), mode = "classification") %>% set_engine("randomForest")
 
 wf_cleveland <- workflow() %>% add_recipe(rcp_cleveland) %>% add_model(rf_cleveland)
